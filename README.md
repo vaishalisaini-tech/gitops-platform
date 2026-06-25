@@ -99,7 +99,7 @@ kubectl apply -f ../../argocd/application-dev.yaml
 
 ---
 
-## Local Kubernetes (free, recommended for the portfolio)
+## Local Kubernetes (free)
 
 ```bash
 kind create cluster --name gitops
@@ -115,23 +115,12 @@ kubectl -n argocd port-forward svc/argocd-server 8080:443   # open https://local
 
 ---
 
-## Rollback demo (great interview story)
+## Rollback demo
 
 1. Push a change that bumps the image tag → ArgoCD syncs it to prod.
 2. `git revert` that commit and push.
 3. ArgoCD detects the drift and **automatically reverts prod** to the previous version.
    No `kubectl`, no manual steps — rollback is just a git operation.
 
----
-
-## What to screenshot for your portfolio
-- `pytest` passing + the app's `/metrics` endpoint
-- `terraform apply` output (or `kind` cluster up)
-- ArgoCD UI showing the app **Synced / Healthy**
-- Grafana dashboard with request-rate / error-rate / p95 panels
-- A CI run in the GitHub Actions tab (green: test → build → scan → push)
 
 ---
-
-## License
-MIT
