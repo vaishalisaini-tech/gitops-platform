@@ -1,0 +1,6 @@
+apiVersion: v2
+name: gitops-demo
+description: Helm chart for the GitOps demo FastAPI service
+type: application
+version: 0.1.0
+appVersion: "0.1.0"

@@ -1,0 +1,4 @@
+region          = "ap-northeast-2"
+cluster_name    = "gitops-platform"
+cluster_version = "1.30"
+node_desired_size = 2

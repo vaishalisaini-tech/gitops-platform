@@ -1,0 +1,11 @@
+# Minimal single-binary Loki for a portfolio cluster.
+# Install: helm install loki grafana/loki -f observability/loki-values.yaml -n monitoring
+deploymentMode: SingleBinary
+loki:
+  auth_enabled: false
+  commonConfig:
+    replication_factor: 1
+  storage:
+    type: filesystem
+singleBinary:
+  replicas: 1

@@ -1,0 +1,4 @@
+env: staging
+replicaCount: 2
+ingress:
+  host: demo.staging.example.com

@@ -1,0 +1,42 @@
+# Default values. Environment overlays live in values-<env>.yaml.
+replicaCount: 2
+
+image:
+  repository: ghcr.io/vaishalisaini-tech/gitops-demo
+  tag: "latest"      # CI bumps this per environment via the config repo
+  pullPolicy: IfNotPresent
+
+env: dev
+appVersion: "0.1.0"
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 8000
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  limits:
+    cpu: 250m
+    memory: 256Mi
+
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 5
+  targetCPUUtilizationPercentage: 70
+
+ingress:
+  enabled: true
+  className: nginx
+  host: demo.dev.example.com
+  tls: true
+
+pdb:
+  enabled: true
+  minAvailable: 1
+
+serviceMonitor:
+  enabled: true

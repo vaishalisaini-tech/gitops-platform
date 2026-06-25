@@ -1,0 +1,23 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: gitops-demo-staging
+  namespace: argocd
+spec:
+  project: gitops-platform
+  source:
+    repoURL: "https://github.com/vaishalisaini-tech/gitops-platform.git"
+    targetRevision: main
+    path: charts/app
+    helm:
+      valueFiles:
+        - values-staging.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: demo-staging
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

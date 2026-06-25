@@ -1,0 +1,78 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+    paths: ["app/**", "charts/**", ".github/workflows/ci.yaml"]
+  pull_request:
+    branches: [main]
+
+env:
+  IMAGE_NAME: gitops-demo
+  REGISTRY: ghcr.io
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install deps
+        working-directory: app
+        run: pip install -r requirements.txt
+      - name: Lint (ruff)
+        run: pip install ruff && ruff check app || true
+      - name: Run tests
+        run: python -m pytest app/tests -q
+
+  build-scan-push:
+    needs: test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set image tag
+        id: vars
+        run: echo "tag=sha-${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./app
+          push: false
+          load: true
+          tags: ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:${{ steps.vars.outputs.tag }}
+
+      - name: Scan image with Trivy (fail on HIGH/CRITICAL)
+        uses: aquasecurity/trivy-action@0.24.0
+        with:
+          image-ref: ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:${{ steps.vars.outputs.tag }}
+          severity: HIGH,CRITICAL
+          exit-code: "1"
+          ignore-unfixed: true
+
+      - name: Push image
+        if: github.ref == 'refs/heads/main'
+        run: docker push ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:${{ steps.vars.outputs.tag }}
+
+      # GitOps handoff: bump the image tag in the config repo. ArgoCD does the deploy.
+      - name: Bump image tag in config repo
+        if: github.ref == 'refs/heads/main'
+        env:
+          CONFIG_REPO_TOKEN: ${{ secrets.CONFIG_REPO_TOKEN }}
+        run: |
+          echo "In a real setup: clone the config repo, update values-dev.yaml image.tag"
+          echo "to ${{ steps.vars.outputs.tag }}, commit and push."
+          echo "ArgoCD detects the change and syncs automatically."

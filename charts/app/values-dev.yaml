@@ -1,0 +1,4 @@
+env: dev
+replicaCount: 2
+ingress:
+  host: demo.dev.example.com
